@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bio-Bubble AI – Plant Health Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #111827, #020617);
+      color: #e5e7eb;
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .app-container {
+      max-width: 1100px;
+      width: 100%;
+    }
+
+    .alert-bar {
+      display: none;
+      padding: 10px 16px;
+      margin-bottom: 16px;
+      border-radius: 12px;
+      background: rgba(220, 38, 38, 0.15);
+      border: 1px solid rgba(248, 113, 113, 0.6);
+      color: #fecaca;
+      font-weight: 500;
+      backdrop-filter: blur(10px);
+    }
+
+    .alert-bar span {
+      font-weight: 700;
+      margin-right: 6px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .title-block h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+    }
+
+    .title-block p {
+      font-size: 0.9rem;
+      color: #9ca3af;
+      margin-top: 4px;
+    }
+
+    .pill {
+      font-size: 0.8rem;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      color: #e5e7eb;
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(10px);
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .card {
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(15,23,42,0.9), rgba(30,64,175,0.4));
+      border: 1px solid rgba(148,163,184,0.35);
+      box-shadow: 0 18px 40px rgba(15,23,42,0.6);
+      backdrop-filter: blur(14px);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 20px 50px rgba(15,23,42,0.9);
+    }
+
+    .card-title {
+      font-size: 0.85rem;
+      color: #9ca3af;
+      margin-bottom: 4px;
+    }
+
+    .card-value {
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .card-sub {
+      font-size: 0.75rem;
+      color: #6b7280;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      padding: 4px 9px;
+      border-radius: 999px;
+      font-weight: 500;
+      margin-top: 4px;
+    }
+
+    .badge-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+    }
+
+    .badge.green {
+      background: rgba(22, 163, 74, 0.18);
+      color: #bbf7d0;
+      border: 1px solid rgba(34, 197, 94, 0.7);
+    }
+
+    .badge.green .badge-dot {
+      background: #22c55e;
+    }
+
+    .badge.yellow {
+      background: rgba(234, 179, 8, 0.18);
+      color: #fef9c3;
+      border: 1px solid rgba(234, 179, 8, 0.7);
+    }
+
+    .badge.yellow .badge-dot {
+      background: #eab308;
+    }
+
+    .badge.red {
+      background: rgba(239, 68, 68, 0.18);
+      color: #fecaca;
+      border: 1px solid rgba(248, 113, 113, 0.7);
+    }
+
+    .badge.red .badge-dot {
+      background: #ef4444;
+    }
+
+    .charts {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 2fr);
+      gap: 16px;
+    }
+
+    .panel {
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: radial-gradient(circle at top left, rgba(56,189,248,0.18), rgba(15,23,42,0.9));
+      border: 1px solid rgba(148,163,184,0.3);
+      box-shadow: 0 18px 40px rgba(15,23,42,0.6);
+      backdrop-filter: blur(12px);
+    }
+
+    .panel-title {
+      font-size: 0.9rem;
+      color: #e5e7eb;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .panel-title span {
+      font-size: 0.75rem;
+      color: #9ca3af;
+    }
+
+    .footer {
+      margin-top: 14px;
+      font-size: 0.7rem;
+      color: #6b7280;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .refresh-btn {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      background: rgba(15, 23, 42, 0.9);
+      color: #e5e7eb;
+      font-size: 0.75rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .refresh-btn:hover {
+      background: rgba(30, 64, 175, 0.8);
+    }
+
+    @media (max-width: 768px) {
+      .charts {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <div id="alertBar" class="alert-bar">
+      <span>⚠ Alert:</span>
+      <span id="alertMessage">Plant is under stress</span>
+    </div>
+
+    <header>
+      <div class="title-block">
+        <h1>Bio-Bubble AI Dashboard</h1>
+        <p>Smart predictive monitoring for your plant micro-environment.</p>
+      </div>
+      <div class="pill" id="lastUpdated">Last updated: --</div>
+    </header>
+
+    <section class="cards">
+      <div class="card">
+        <div class="card-title">Temperature</div>
+        <div class="card-value" id="tempValue">-- °C</div>
+        <div class="card-sub">Ideal: 20–30 °C</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Humidity</div>
+        <div class="card-value" id="humValue">-- %</div>
+        <div class="card-sub">Ideal: 40–70 %</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Soil Moisture</div>
+        <div class="card-value" id="soilValue">-- %</div>
+        <div class="card-sub">Ideal: 35–70 %</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Current Stress</div>
+        <div class="card-value" id="stressNowValue">--</div>
+        <div id="stressNowBadgeContainer"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Predicted Stress</div>
+        <div class="card-value" id="stressPredValue">--</div>
+        <div id="stressPredBadgeContainer"></div>
+      </div>
+    </section>
+
+    <section class="charts">
+      <div class="panel">
+        <div class="panel-title">
+          <span>Environment Trends</span>
+          <button class="refresh-btn" id="manualRefresh">
+            ⟳ Refresh
+          </button>
+        </div>
+        <canvas id="envChart" height="140"></canvas>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">
+          <span>Stress Timeline (Current vs Predicted)</span>
+          <span>0 = Normal, 1 = Warning, 2 = Critical</span>
+        </div>
+        <canvas id="stressChart" height="140"></canvas>
+      </div>
+    </section>
+
+    <div class="footer">
+      <span>Data source: ThingSpeak IoT channel</span>
+      <span>Auto-refresh every 30 seconds</span>
+    </div>
+  </div>
+
+  <script>
+    // ------------------ CONFIG: CHANGE THESE ------------------
+    const CHANNEL_ID = "3196366";        // e.g. "2567890"
+    const READ_API_KEY = "7GGMVUP6BVK9UJC2";    // from ThingSpeak API Keys
+    const RESULTS = 50;                          // last N samples to plot
+    const REFRESH_INTERVAL_MS = 30000;           // 30 seconds
+    // ---------------------------------------------------------
+
+    const alertBar = document.getElementById("alertBar");
+    const alertMessage = document.getElementById("alertMessage");
+    const lastUpdatedEl = document.getElementById("lastUpdated");
+
+    const tempValueEl = document.getElementById("tempValue");
+    const humValueEl = document.getElementById("humValue");
+    const soilValueEl = document.getElementById("soilValue");
+    const stressNowValueEl = document.getElementById("stressNowValue");
+    const stressPredValueEl = document.getElementById("stressPredValue");
+
+    const stressNowBadgeContainer = document.getElementById("stressNowBadgeContainer");
+    const stressPredBadgeContainer = document.getElementById("stressPredBadgeContainer");
+
+    const manualRefreshBtn = document.getElementById("manualRefresh");
+
+    let envChart, stressChart;
+
+    function stressLabel(value) {
+      if (value === 0) return "Normal";
+      if (value === 1) return "Warning";
+      if (value === 2) return "Critical";
+      return "--";
+    }
+
+    function createBadgeHTML(type, label) {
+      return `
+        <div class="badge ${type}">
+          <span class="badge-dot"></span>
+          <span>${label}</span>
+        </div>
+      `;
+    }
+
+    function updateBadge(container, stress) {
+      let type = "green";
+      if (stress === 1) type = "yellow";
+      if (stress === 2) type = "red";
+      container.innerHTML = createBadgeHTML(type, stressLabel(stress));
+    }
+
+    function showAlert(message) {
+      alertMessage.textContent = message;
+      alertBar.style.display = "block";
+
+      // Optional browser notification (user must allow)
+      if ("Notification" in window) {
+        if (Notification.permission === "granted") {
+          new Notification("Bio-Bubble AI Alert", { body: message });
+        } else if (Notification.permission !== "denied") {
+          Notification.requestPermission().then(permission => {
+            if (permission === "granted") {
+              new Notification("Bio-Bubble AI Alert", { body: message });
+            }
+          });
+        }
+      }
+    }
+
+    function hideAlert() {
+      alertBar.style.display = "none";
+    }
+
+    async function fetchThingSpeakData() {
+      const url = `https://api.thingspeak.com/channels/${CHANNEL_ID}/feeds.json?api_key=${READ_API_KEY}&results=${RESULTS}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Failed to fetch ThingSpeak data");
+      const data = await res.json();
+      return data;
+    }
+
+    function buildChartsIfNeeded(ctxEnv, ctxStress) {
+      if (!envChart) {
+        envChart = new Chart(ctxEnv, {
+          type: "line",
+          data: {
+            labels: [],
+            datasets: [
+              {
+                label: "Temperature (°C)",
+                data: [],
+                borderWidth: 2,
+                tension: 0.3
+              },
+              {
+                label: "Soil Moisture (%)",
+                data: [],
+                borderWidth: 2,
+                tension: 0.3
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            interaction: {
+              mode: "index",
+              intersect: false
+            },
+            plugins: {
+              legend: {
+                labels: {
+                  color: "#e5e7eb"
+                }
+              }
+            },
+            scales: {
+              x: {
+                ticks: { color: "#9ca3af", maxRotation: 0, autoSkip: true },
+                grid: { color: "rgba(55,65,81,0.4)" }
+              },
+              y: {
+                ticks: { color: "#9ca3af" },
+                grid: { color: "rgba(55,65,81,0.4)" }
+              }
+            }
+          }
+        });
+      }
+
+      if (!stressChart) {
+        stressChart = new Chart(ctxStress, {
+          type: "line",
+          data: {
+            labels: [],
+            datasets: [
+              {
+                label: "Current Stress",
+                data: [],
+                borderWidth: 2,
+                stepped: true
+              },
+              {
+                label: "Predicted Stress",
+                data: [],
+                borderWidth: 2,
+                stepped: true
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            interaction: {
+              mode: "index",
+              intersect: false
+            },
+            plugins: {
+              legend: {
+                labels: {
+                  color: "#e5e7eb"
+                }
+              }
+            },
+            scales: {
+              x: {
+                ticks: { color: "#9ca3af", maxRotation: 0, autoSkip: true },
+                grid: { color: "rgba(55,65,81,0.4)" }
+              },
+              y: {
+                min: 0,
+                max: 2,
+                ticks: {
+                  stepSize: 1,
+                  color: "#9ca3af",
+                  callback: function(value) {
+                    return `${value}`;
+                  }
+                },
+                grid: { color: "rgba(55,65,81,0.4)" }
+              }
+            }
+          }
+        });
+      }
+    }
+
+    async function refreshDashboard() {
+      try {
+        const data = await fetchThingSpeakData();
+
+        const feeds = data.feeds || [];
+        if (feeds.length === 0) return;
+
+        // Latest feed = last item
+        const latest = feeds[feeds.length - 1];
+
+        const temp = parseFloat(latest.field1);
+        const hum = parseFloat(latest.field2);
+        const soil = parseFloat(latest.field3);
+        const stressNow = parseInt(latest.field4);
+        const stressPred = latest.field5 !== null ? parseInt(latest.field5) : null;
+
+        // Update current values
+        if (!isNaN(temp)) tempValueEl.textContent = `${temp.toFixed(1)} °C`;
+        if (!isNaN(hum)) humValueEl.textContent = `${hum.toFixed(1)} %`;
+        if (!isNaN(soil)) soilValueEl.textContent = `${soil.toFixed(0)} %`;
+
+        if (!isNaN(stressNow)) {
+          stressNowValueEl.textContent = stressNow;
+          updateBadge(stressNowBadgeContainer, stressNow);
+        } else {
+          stressNowValueEl.textContent = "--";
+          stressNowBadgeContainer.innerHTML = "";
+        }
+
+        if (stressPred !== null && !isNaN(stressPred)) {
+          stressPredValueEl.textContent = stressPred;
+          updateBadge(stressPredBadgeContainer, stressPred);
+        } else {
+          stressPredValueEl.textContent = "--";
+          stressPredBadgeContainer.innerHTML = "";
+        }
+
+        // Last updated
+        const ts = latest.created_at;
+        lastUpdatedEl.textContent = `Last updated: ${new Date(ts).toLocaleString()}`;
+
+        // Build charts if needed
+        const ctxEnv = document.getElementById("envChart").getContext("2d");
+        const ctxStress = document.getElementById("stressChart").getContext("2d");
+        buildChartsIfNeeded(ctxEnv, ctxStress);
+
+        // Prepare chart data arrays
+        const labels = feeds.map(f => {
+          const d = new Date(f.created_at);
+          return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        });
+
+        const temps = feeds.map(f => parseFloat(f.field1));
+        const soils = feeds.map(f => parseFloat(f.field3));
+        const stressNowSeries = feeds.map(f => f.field4 !== null ? parseInt(f.field4) : null);
+        const stressPredSeries = feeds.map(f => f.field5 !== null ? parseInt(f.field5) : null);
+
+        // Update env chart
+        envChart.data.labels = labels;
+        envChart.data.datasets[0].data = temps;
+        envChart.data.datasets[1].data = soils;
+        envChart.update();
+
+        // Update stress chart
+        stressChart.data.labels = labels;
+        stressChart.data.datasets[0].data = stressNowSeries;
+        stressChart.data.datasets[1].data = stressPredSeries;
+        stressChart.update();
+
+        // Alert logic:
+        // Critical now OR prediction >= 1
+        if ((!isNaN(stressNow) && stressNow === 2) || (stressPred !== null && stressPred >= 1)) {
+          let msg = "";
+          if (stressNow === 2) {
+            msg = "Your plant is currently under CRITICAL stress. Please act now!";
+          } else {
+            msg = "Your plant is likely to be stressed soon. Adjust light or watering.";
+          }
+          showAlert(msg);
+        } else {
+          hideAlert();
+        }
+
+      } catch (err) {
+        console.error("Error refreshing dashboard:", err);
+      }
+    }
+
+    manualRefreshBtn.addEventListener("click", refreshDashboard);
+
+    // First load
+    refreshDashboard();
+
+    // Auto refresh
+    setInterval(refreshDashboard, REFRESH_INTERVAL_MS);
+  </script>
+</body>
+</html>
