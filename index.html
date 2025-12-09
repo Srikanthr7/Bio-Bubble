@@ -75,6 +75,32 @@
       backdrop-filter: blur(10px);
     }
 
+    .status-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 6px;
+      animation: pulse 2s infinite;
+    }
+
+    .status-indicator.connected {
+      background: #22c55e;
+    }
+
+    .status-indicator.connecting {
+      background: #eab308;
+    }
+
+    .status-indicator.disconnected {
+      background: #ef4444;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
     .cards {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -82,17 +108,20 @@
       margin-bottom: 18px;
     }
 
-    .card {
+    .card, .control-card {
       padding: 14px 16px;
       border-radius: 16px;
-      background: linear-gradient(135deg, rgba(15,23,42,0.9), rgba(30,64,175,0.4));
       border: 1px solid rgba(148,163,184,0.35);
       box-shadow: 0 18px 40px rgba(15,23,42,0.6);
       backdrop-filter: blur(14px);
       transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
-    .card:hover {
+    .card {
+      background: linear-gradient(135deg, rgba(15,23,42,0.9), rgba(30,64,175,0.4));
+    }
+
+    .card:hover, .control-card:hover {
       transform: translateY(-3px);
       box-shadow: 0 20px 50px rgba(15,23,42,0.9);
     }
@@ -107,6 +136,7 @@
       font-size: 1.4rem;
       font-weight: 600;
       margin-bottom: 4px;
+      transition: color 0.3s ease;
     }
 
     .card-sub {
@@ -161,6 +191,93 @@
       background: #ef4444;
     }
 
+    /* Water Pump Control Styles */
+    .control-card {
+      background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(5,150,105,0.3));
+      border: 1px solid rgba(16,185,129,0.5);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .control-label {
+      font-size: 0.85rem;
+      color: #9ca3af;
+      font-weight: 500;
+    }
+
+    .pump-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 50px;
+      height: 28px;
+      background: rgba(75, 85, 99, 0.5);
+      border-radius: 14px;
+      cursor: pointer;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      transition: background 0.3s ease;
+    }
+
+    .toggle-switch.active {
+      background: rgba(34, 197, 94, 0.6);
+      border-color: #22c55e;
+    }
+
+    .toggle-switch::after {
+      content: '';
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      background: #e5e7eb;
+      border-radius: 12px;
+      top: 2px;
+      left: 2px;
+      transition: left 0.3s ease;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .toggle-switch.active::after {
+      left: 24px;
+      background: #22c55e;
+    }
+
+    .pump-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      color: #e5e7eb;
+    }
+
+    .pump-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #6b7280;
+      transition: background 0.3s ease;
+    }
+
+    .pump-indicator.running {
+      background: #22c55e;
+      animation: pumpPulse 1s infinite;
+    }
+
+    @keyframes pumpPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .pump-timer {
+      font-size: 0.75rem;
+      color: #9ca3af;
+      margin-top: 4px;
+    }
+
     .charts {
       display: grid;
       grid-template-columns: minmax(0, 2fr) minmax(0, 2fr);
@@ -210,6 +327,7 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      transition: background 0.2s ease;
     }
 
     .refresh-btn:hover {
@@ -240,7 +358,10 @@
         <h1>Bio-Bubble AI Dashboard</h1>
         <p>Smart predictive monitoring for your plant micro-environment.</p>
       </div>
-      <div class="pill" id="lastUpdated">Last updated: --</div>
+      <div class="pill">
+        <span class="status-indicator connected" id="statusIndicator"></span>
+        <span id="lastUpdated">Last updated: --</span>
+      </div>
     </header>
 
     <section class="cards">
@@ -273,6 +394,18 @@
         <div class="card-value" id="stressPredValue">--</div>
         <div id="stressPredBadgeContainer"></div>
       </div>
+
+      <div class="control-card">
+        <div class="control-label">💧 Water Pump Control</div>
+        <div class="pump-toggle">
+          <div class="toggle-switch" id="pumpToggle"></div>
+          <div class="pump-status">
+            <div class="pump-indicator" id="pumpIndicator"></div>
+            <span id="pumpStatusText">OFF</span>
+          </div>
+        </div>
+        <div class="pump-timer" id="pumpTimer"></div>
+      </div>
     </section>
 
     <section class="charts">
@@ -296,22 +429,27 @@
     </section>
 
     <div class="footer">
-      <span>Data source: ThingSpeak IoT channel</span>
-      <span>Auto-refresh every 30 seconds</span>
+      <span>Data source: ThingSpeak IoT channel (Real-time)</span>
+      <span>Updates every 5 seconds</span>
     </div>
   </div>
 
   <script>
-    // ------------------ CONFIG: CHANGE THESE ------------------
-    const CHANNEL_ID = "3196366";        // e.g. "2567890"
-    const READ_API_KEY = "7GGMVUP6BVK9UJC2";    // from ThingSpeak API Keys
-    const RESULTS = 50;                          // last N samples to plot
-    const REFRESH_INTERVAL_MS = 30000;           // 30 seconds
-    // ---------------------------------------------------------
+    // ==================== CONFIG ====================
+    const CHANNEL_ID = "3196366";
+    const READ_API_KEY = "7GGMVUP6BVK9UJC2";
+    const WRITE_API_KEY = "BWAP610Y0M33LLFD"; // your write key
+    const RESULTS = 50;
+    const REFRESH_INTERVAL_MS = 5000;
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY_MS = 1000;
+    const PUMP_DEFAULT_DURATION_MS = 5000; // 5 sec
 
+    // ==================== DOM ELEMENTS ====================
     const alertBar = document.getElementById("alertBar");
     const alertMessage = document.getElementById("alertMessage");
     const lastUpdatedEl = document.getElementById("lastUpdated");
+    const statusIndicator = document.getElementById("statusIndicator");
 
     const tempValueEl = document.getElementById("tempValue");
     const humValueEl = document.getElementById("humValue");
@@ -324,7 +462,38 @@
 
     const manualRefreshBtn = document.getElementById("manualRefresh");
 
+    // Pump DOM
+    const pumpToggle = document.getElementById("pumpToggle");
+    const pumpIndicator = document.getElementById("pumpIndicator");
+    const pumpStatusText = document.getElementById("pumpStatusText");
+    const pumpTimer = document.getElementById("pumpTimer");
+
+    // Charts
     let envChart, stressChart;
+
+    // Data cache
+    let lastLatestId = null;
+    let chartDataCache = {
+      labels: [],
+      temps: [],
+      soils: [],
+      stressNow: [],
+      stressPred: []
+    };
+
+    let isRefreshing = false;
+    let connectionStatus = "connected";
+
+    // Pump state
+    let pumpIsActive = false;
+    let pumpRunTimeRemaining = 0;
+    let pumpTimerInterval = null;
+
+    // ==================== UTILS ====================
+    function setStatus(status) {
+      connectionStatus = status;
+      statusIndicator.className = `status-indicator ${status}`;
+    }
 
     function stressLabel(value) {
       if (value === 0) return "Normal";
@@ -334,12 +503,7 @@
     }
 
     function createBadgeHTML(type, label) {
-      return `
-        <div class="badge ${type}">
-          <span class="badge-dot"></span>
-          <span>${label}</span>
-        </div>
-      `;
+      return `<div class="badge ${type}"><span class="badge-dot"></span><span>${label}</span></div>`;
     }
 
     function updateBadge(container, stress) {
@@ -353,17 +517,8 @@
       alertMessage.textContent = message;
       alertBar.style.display = "block";
 
-      // Optional browser notification (user must allow)
-      if ("Notification" in window) {
-        if (Notification.permission === "granted") {
-          new Notification("Bio-Bubble AI Alert", { body: message });
-        } else if (Notification.permission !== "denied") {
-          Notification.requestPermission().then(permission => {
-            if (permission === "granted") {
-              new Notification("Bio-Bubble AI Alert", { body: message });
-            }
-          });
-        }
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification("Bio-Bubble AI Alert", { body: message });
       }
     }
 
@@ -371,213 +526,353 @@
       alertBar.style.display = "none";
     }
 
-    async function fetchThingSpeakData() {
-      const url = `https://api.thingspeak.com/channels/${CHANNEL_ID}/feeds.json?api_key=${READ_API_KEY}&results=${RESULTS}`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error("Failed to fetch ThingSpeak data");
-      const data = await res.json();
-      return data;
-    }
-
-    function buildChartsIfNeeded(ctxEnv, ctxStress) {
-      if (!envChart) {
-        envChart = new Chart(ctxEnv, {
-          type: "line",
-          data: {
-            labels: [],
-            datasets: [
-              {
-                label: "Temperature (°C)",
-                data: [],
-                borderWidth: 2,
-                tension: 0.3
-              },
-              {
-                label: "Soil Moisture (%)",
-                data: [],
-                borderWidth: 2,
-                tension: 0.3
-              }
-            ]
-          },
-          options: {
-            responsive: true,
-            interaction: {
-              mode: "index",
-              intersect: false
-            },
-            plugins: {
-              legend: {
-                labels: {
-                  color: "#e5e7eb"
-                }
-              }
-            },
-            scales: {
-              x: {
-                ticks: { color: "#9ca3af", maxRotation: 0, autoSkip: true },
-                grid: { color: "rgba(55,65,81,0.4)" }
-              },
-              y: {
-                ticks: { color: "#9ca3af" },
-                grid: { color: "rgba(55,65,81,0.4)" }
-              }
-            }
-          }
-        });
-      }
-
-      if (!stressChart) {
-        stressChart = new Chart(ctxStress, {
-          type: "line",
-          data: {
-            labels: [],
-            datasets: [
-              {
-                label: "Current Stress",
-                data: [],
-                borderWidth: 2,
-                stepped: true
-              },
-              {
-                label: "Predicted Stress",
-                data: [],
-                borderWidth: 2,
-                stepped: true
-              }
-            ]
-          },
-          options: {
-            responsive: true,
-            interaction: {
-              mode: "index",
-              intersect: false
-            },
-            plugins: {
-              legend: {
-                labels: {
-                  color: "#e5e7eb"
-                }
-              }
-            },
-            scales: {
-              x: {
-                ticks: { color: "#9ca3af", maxRotation: 0, autoSkip: true },
-                grid: { color: "rgba(55,65,81,0.4)" }
-              },
-              y: {
-                min: 0,
-                max: 2,
-                ticks: {
-                  stepSize: 1,
-                  color: "#9ca3af",
-                  callback: function(value) {
-                    return `${value}`;
-                  }
-                },
-                grid: { color: "rgba(55,65,81,0.4)" }
-              }
-            }
-          }
-        });
+    // ==================== PUMP CONTROL ====================
+    function updatePumpUI() {
+      if (pumpIsActive) {
+        pumpToggle.classList.add("active");
+        pumpIndicator.classList.add("running");
+        pumpStatusText.textContent = "ON";
+      } else {
+        pumpToggle.classList.remove("active");
+        pumpIndicator.classList.remove("running");
+        pumpStatusText.textContent = "OFF";
       }
     }
 
-    async function refreshDashboard() {
+    async function sendPumpCommand(action) {
+      // action: "ON" or "OFF"
+      const value = action === "ON" ? 1 : 0;
+      const url = `https://api.thingspeak.com/update?api_key=${WRITE_API_KEY}&field7=${value}`;
+
       try {
-        const data = await fetchThingSpeakData();
+        await fetch(url);
+        console.log("Pump command sent:", action, "->", value);
+        return true;
+      } catch (err) {
+        console.error("Pump command failed:", err);
+        return false;
+      }
+    }
 
+    function startPumpTimer(durationMs = PUMP_DEFAULT_DURATION_MS) {
+      pumpRunTimeRemaining = Math.ceil(durationMs / 1000);
+
+      pumpTimerInterval = setInterval(() => {
+        pumpRunTimeRemaining--;
+        pumpTimer.textContent = `Running: ${pumpRunTimeRemaining}s`;
+
+        if (pumpRunTimeRemaining <= 0) {
+          clearInterval(pumpTimerInterval);
+          pumpTimerInterval = null;
+          pumpTimer.textContent = "";
+          pumpIsActive = false;
+          updatePumpUI();
+        }
+      }, 1000);
+    }
+
+    async function startPump() {
+      const success = await sendPumpCommand("ON");
+      if (success) {
+        pumpIsActive = true;
+        updatePumpUI();
+        startPumpTimer(PUMP_DEFAULT_DURATION_MS);
+
+        // After timer ends, we also send OFF to be safe
+        setTimeout(() => {
+          sendPumpCommand("OFF");
+        }, PUMP_DEFAULT_DURATION_MS + 1000);
+      }
+    }
+
+    async function stopPump() {
+      const success = await sendPumpCommand("OFF");
+      if (success) {
+        pumpIsActive = false;
+        if (pumpTimerInterval) {
+          clearInterval(pumpTimerInterval);
+          pumpTimerInterval = null;
+        }
+        pumpTimer.textContent = "";
+        updatePumpUI();
+      }
+    }
+
+    async function togglePump() {
+      if (pumpIsActive) {
+        await stopPump();
+      } else {
+        await startPump();
+      }
+    }
+
+    pumpToggle.addEventListener("click", togglePump);
+
+    // ==================== DATA FETCHING ====================
+    async function fetchThingSpeakDataWithRetry(retryCount = 0) {
+      try {
+        setStatus("connecting");
+        const url = `https://api.thingspeak.com/channels/${CHANNEL_ID}/feeds.json?api_key=${READ_API_KEY}&results=${RESULTS}`;
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+        const res = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeoutId);
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const data = await res.json();
+        setStatus("connected");
+        return data;
+      } catch (err) {
+        if (retryCount < MAX_RETRIES) {
+          await new Promise(r => setTimeout(r, RETRY_DELAY_MS));
+          return fetchThingSpeakDataWithRetry(retryCount + 1);
+        }
+        setStatus("disconnected");
+        console.error("Fetch failed:", err);
+        throw err;
+      }
+    }
+
+    // ==================== CHART INIT ====================
+    function initCharts() {
+      const ctxEnv = document.getElementById("envChart").getContext("2d");
+      const ctxStress = document.getElementById("stressChart").getContext("2d");
+
+      envChart = new Chart(ctxEnv, {
+        type: "line",
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: "Temperature (°C)",
+              data: [],
+              borderColor: "#3b82f6",
+              backgroundColor: "rgba(59, 130, 246, 0.1)",
+              borderWidth: 2,
+              tension: 0.3,
+              pointRadius: 3,
+              pointBackgroundColor: "#3b82f6"
+            },
+            {
+              label: "Soil Moisture (%)",
+              data: [],
+              borderColor: "#10b981",
+              backgroundColor: "rgba(16, 185, 129, 0.1)",
+              borderWidth: 2,
+              tension: 0.3,
+              pointRadius: 3,
+              pointBackgroundColor: "#10b981"
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          animation: { duration: 200 },
+          interaction: { mode: "index", intersect: false },
+          plugins: {
+            legend: { labels: { color: "#e5e7eb" } }
+          },
+          scales: {
+            x: {
+              ticks: { color: "#9ca3af", maxRotation: 0, autoSkip: true },
+              grid: { color: "rgba(55,65,81,0.4)" }
+            },
+            y: {
+              ticks: { color: "#9ca3af" },
+              grid: { color: "rgba(55,65,81,0.4)" }
+            }
+          }
+        }
+      });
+
+      stressChart = new Chart(ctxStress, {
+        type: "line",
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: "Current Stress",
+              data: [],
+              borderColor: "#f59e0b",
+              backgroundColor: "rgba(245, 158, 11, 0.1)",
+              borderWidth: 2,
+              stepped: true,
+              pointRadius: 3,
+              pointBackgroundColor: "#f59e0b"
+            },
+            {
+              label: "Predicted Stress",
+              data: [],
+              borderColor: "#ef4444",
+              backgroundColor: "rgba(239, 68, 68, 0.1)",
+              borderWidth: 2,
+              stepped: true,
+              pointRadius: 3,
+              pointBackgroundColor: "#ef4444"
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          animation: { duration: 200 },
+          interaction: { mode: "index", intersect: false },
+          plugins: {
+            legend: { labels: { color: "#e5e7eb" } }
+          },
+          scales: {
+            x: {
+              ticks: { color: "#9ca3af", maxRotation: 0, autoSkip: true },
+              grid: { color: "rgba(55,65,81,0.4)" }
+            },
+            y: {
+              min: 0,
+              max: 2,
+              ticks: {
+                stepSize: 1,
+                color: "#9ca3af"
+              },
+              grid: { color: "rgba(55,65,81,0.4)" }
+            }
+          }
+        }
+      });
+    }
+
+    // ==================== DELTA UPDATE ====================
+    function appendDataPoint(feed) {
+      const timeStr = new Date(feed.created_at).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+
+      if (lastLatestId === feed.id) return false;
+
+      chartDataCache.labels.push(timeStr);
+      chartDataCache.temps.push(parseFloat(feed.field1));
+      chartDataCache.soils.push(parseFloat(feed.field3));
+      chartDataCache.stressNow.push(feed.field4 !== null ? parseInt(feed.field4) : null);
+      chartDataCache.stressPred.push(feed.field5 !== null ? parseInt(feed.field5) : null);
+
+      if (chartDataCache.labels.length > RESULTS) {
+        chartDataCache.labels.shift();
+        chartDataCache.temps.shift();
+        chartDataCache.soils.shift();
+        chartDataCache.stressNow.shift();
+        chartDataCache.stressPred.shift();
+      }
+
+      lastLatestId = feed.id;
+      return true;
+    }
+
+    function updateChartsIncremental() {
+      if (envChart && stressChart) {
+        envChart.data.labels = chartDataCache.labels;
+        envChart.data.datasets[0].data = chartDataCache.temps;
+        envChart.data.datasets[1].data = chartDataCache.soils;
+        envChart.update("none");
+
+        stressChart.data.labels = chartDataCache.labels;
+        stressChart.data.datasets[0].data = chartDataCache.stressNow;
+        stressChart.data.datasets[1].data = chartDataCache.stressPred;
+        stressChart.update("none");
+      }
+    }
+
+    // ==================== MAIN DASHBOARD REFRESH ====================
+    async function refreshDashboard() {
+      if (isRefreshing) return;
+      isRefreshing = true;
+
+      try {
+        const data = await fetchThingSpeakDataWithRetry();
         const feeds = data.feeds || [];
-        if (feeds.length === 0) return;
 
-        // Latest feed = last item
+        if (feeds.length === 0) {
+          isRefreshing = false;
+          return;
+        }
+
+        if (!envChart) {
+          initCharts();
+          chartDataCache.labels = feeds.map(f =>
+            new Date(f.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+          );
+          chartDataCache.temps = feeds.map(f => parseFloat(f.field1));
+          chartDataCache.soils = feeds.map(f => parseFloat(f.field3));
+          chartDataCache.stressNow = feeds.map(f => f.field4 !== null ? parseInt(f.field4) : null);
+          chartDataCache.stressPred = feeds.map(f => f.field5 !== null ? parseInt(f.field5) : null);
+          lastLatestId = feeds[feeds.length - 1].id;
+          updateChartsIncremental();
+        } else {
+          for (let i = 0; i < feeds.length; i++) {
+            appendDataPoint(feeds[i]);
+          }
+          updateChartsIncremental();
+        }
+
         const latest = feeds[feeds.length - 1];
-
         const temp = parseFloat(latest.field1);
         const hum = parseFloat(latest.field2);
         const soil = parseFloat(latest.field3);
         const stressNow = parseInt(latest.field4);
         const stressPred = latest.field5 !== null ? parseInt(latest.field5) : null;
+        const pumpStatus = latest.field6 !== null ? parseInt(latest.field6) : 0;
 
-        // Update current values
-        if (!isNaN(temp)) tempValueEl.textContent = `${temp.toFixed(1)} °C`;
-        if (!isNaN(hum)) humValueEl.textContent = `${hum.toFixed(1)} %`;
-        if (!isNaN(soil)) soilValueEl.textContent = `${soil.toFixed(0)} %`;
+        requestAnimationFrame(() => {
+          if (!isNaN(temp)) tempValueEl.textContent = `${temp.toFixed(1)} °C`;
+          if (!isNaN(hum)) humValueEl.textContent = `${hum.toFixed(1)} %`;
+          if (!isNaN(soil)) soilValueEl.textContent = `${soil.toFixed(0)} %`;
 
-        if (!isNaN(stressNow)) {
-          stressNowValueEl.textContent = stressNow;
-          updateBadge(stressNowBadgeContainer, stressNow);
-        } else {
-          stressNowValueEl.textContent = "--";
-          stressNowBadgeContainer.innerHTML = "";
-        }
+          if (!isNaN(stressNow)) {
+            stressNowValueEl.textContent = stressNow;
+            updateBadge(stressNowBadgeContainer, stressNow);
+          }
 
-        if (stressPred !== null && !isNaN(stressPred)) {
-          stressPredValueEl.textContent = stressPred;
-          updateBadge(stressPredBadgeContainer, stressPred);
-        } else {
-          stressPredValueEl.textContent = "--";
-          stressPredBadgeContainer.innerHTML = "";
-        }
+          if (stressPred !== null && !isNaN(stressPred)) {
+            stressPredValueEl.textContent = stressPred;
+            updateBadge(stressPredBadgeContainer, stressPred);
+          }
 
-        // Last updated
-        const ts = latest.created_at;
-        lastUpdatedEl.textContent = `Last updated: ${new Date(ts).toLocaleString()}`;
+          // Sync pump UI lightly from Field6 (0/1)
+          pumpIsActive = pumpStatus === 1;
+          updatePumpUI();
 
-        // Build charts if needed
-        const ctxEnv = document.getElementById("envChart").getContext("2d");
-        const ctxStress = document.getElementById("stressChart").getContext("2d");
-        buildChartsIfNeeded(ctxEnv, ctxStress);
-
-        // Prepare chart data arrays
-        const labels = feeds.map(f => {
-          const d = new Date(f.created_at);
-          return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+          lastUpdatedEl.textContent = `Last updated: ${new Date(latest.created_at).toLocaleTimeString()}`;
         });
 
-        const temps = feeds.map(f => parseFloat(f.field1));
-        const soils = feeds.map(f => parseFloat(f.field3));
-        const stressNowSeries = feeds.map(f => f.field4 !== null ? parseInt(f.field4) : null);
-        const stressPredSeries = feeds.map(f => f.field5 !== null ? parseInt(f.field5) : null);
-
-        // Update env chart
-        envChart.data.labels = labels;
-        envChart.data.datasets[0].data = temps;
-        envChart.data.datasets[1].data = soils;
-        envChart.update();
-
-        // Update stress chart
-        stressChart.data.labels = labels;
-        stressChart.data.datasets[0].data = stressNowSeries;
-        stressChart.data.datasets[1].data = stressPredSeries;
-        stressChart.update();
-
-        // Alert logic:
-        // Critical now OR prediction >= 1
         if ((!isNaN(stressNow) && stressNow === 2) || (stressPred !== null && stressPred >= 1)) {
-          let msg = "";
-          if (stressNow === 2) {
-            msg = "Your plant is currently under CRITICAL stress. Please act now!";
-          } else {
-            msg = "Your plant is likely to be stressed soon. Adjust light or watering.";
-          }
+          const msg = stressNow === 2
+            ? "Your plant is currently under CRITICAL stress. Please act now!"
+            : "Your plant is likely to be stressed soon. Adjust light or watering.";
           showAlert(msg);
         } else {
           hideAlert();
         }
 
       } catch (err) {
-        console.error("Error refreshing dashboard:", err);
+        console.error("Dashboard refresh error:", err);
+      } finally {
+        isRefreshing = false;
       }
     }
 
+    // ==================== EVENTS ====================
     manualRefreshBtn.addEventListener("click", refreshDashboard);
 
-    // First load
+    // Initial load
     refreshDashboard();
 
     // Auto refresh
     setInterval(refreshDashboard, REFRESH_INTERVAL_MS);
+
+    // Ask for notification permission
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
   </script>
 </body>
 </html>
