@@ -9,10 +9,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
+    * { box-sizing: border-box; margin: 0; padding: 0;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
@@ -22,17 +19,18 @@
       color: #e5e7eb;
       display: flex;
       justify-content: center;
-      padding: 20px;
+      padding: 10px;
     }
 
-    .app-container {
-      max-width: 1100px;
-      width: 100%;
+    .app-container { 
+      max-width: 1100px; 
+      width: 100%; 
+      padding: 0 10px;
     }
 
     .alert-bar {
       display: none;
-      padding: 10px 16px;
+      padding: 10px 14px;
       margin-bottom: 16px;
       border-radius: 12px;
       background: rgba(220, 38, 38, 0.15);
@@ -40,39 +38,38 @@
       color: #fecaca;
       font-weight: 500;
       backdrop-filter: blur(10px);
+      font-size: 0.85rem;
     }
 
-    .alert-bar span {
-      font-weight: 700;
-      margin-right: 6px;
-    }
+    .alert-bar span { font-weight: 700; margin-right: 6px; }
 
     header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      margin-bottom: 18px;
+      align-items: flex-start;
+      margin-bottom: 16px;
+      gap: 12px;
+      flex-wrap: wrap;
     }
 
-    .title-block h1 {
-      font-size: 1.6rem;
-      font-weight: 700;
+    .title-block h1 { 
+      font-size: clamp(1.2rem, 5vw, 1.6rem); 
+      font-weight: 700; 
     }
-
-    .title-block p {
-      font-size: 0.9rem;
-      color: #9ca3af;
-      margin-top: 4px;
+    .title-block p { 
+      font-size: clamp(0.75rem, 3vw, 0.9rem); 
+      color: #9ca3af; 
+      margin-top: 4px; 
     }
 
     .pill {
-      font-size: 0.8rem;
+      font-size: clamp(0.65rem, 2vw, 0.8rem);
       padding: 6px 10px;
       border-radius: 999px;
       border: 1px solid rgba(148, 163, 184, 0.6);
-      color: #e5e7eb;
       background: rgba(15, 23, 42, 0.7);
       backdrop-filter: blur(10px);
+      white-space: nowrap;
     }
 
     .status-indicator {
@@ -82,19 +79,12 @@
       display: inline-block;
       margin-right: 6px;
       animation: pulse 2s infinite;
+      flex-shrink: 0;
     }
 
-    .status-indicator.connected {
-      background: #22c55e;
-    }
-
-    .status-indicator.connecting {
-      background: #eab308;
-    }
-
-    .status-indicator.disconnected {
-      background: #ef4444;
-    }
+    .status-indicator.connected { background: #22c55e; }
+    .status-indicator.connecting { background: #eab308; }
+    .status-indicator.disconnected { background: #ef4444; }
 
     @keyframes pulse {
       0%, 100% { opacity: 1; }
@@ -103,18 +93,18 @@
 
     .cards {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 12px;
-      margin-bottom: 18px;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
     }
 
     .card, .control-card {
-      padding: 14px 16px;
-      border-radius: 16px;
+      padding: 12px 14px;
+      border-radius: 12px;
       border: 1px solid rgba(148,163,184,0.35);
-      box-shadow: 0 18px 40px rgba(15,23,42,0.6);
       backdrop-filter: blur(14px);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 18px 40px rgba(15,23,42,0.6);
+      transition: 0.2s ease;
     }
 
     .card {
@@ -122,237 +112,247 @@
     }
 
     .card:hover, .control-card:hover {
-      transform: translateY(-3px);
+      transform: translateY(-2px);
       box-shadow: 0 20px 50px rgba(15,23,42,0.9);
     }
 
-    .card-title {
-      font-size: 0.85rem;
-      color: #9ca3af;
-      margin-bottom: 4px;
+    .card-title { 
+      font-size: clamp(0.75rem, 2.5vw, 0.85rem); 
+      color: #9ca3af; 
+      margin-bottom: 4px; 
     }
-
-    .card-value {
-      font-size: 1.4rem;
-      font-weight: 600;
-      margin-bottom: 4px;
-      transition: color 0.3s ease;
+    .card-value { 
+      font-size: clamp(1.1rem, 4vw, 1.4rem); 
+      font-weight: 600; 
+      margin-bottom: 4px; 
     }
-
-    .card-sub {
-      font-size: 0.75rem;
-      color: #6b7280;
+    .card-sub { 
+      font-size: clamp(0.65rem, 2vw, 0.75rem); 
+      color: #6b7280; 
     }
 
     .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.75rem;
-      padding: 4px 9px;
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: clamp(0.65rem, 2vw, 0.75rem); 
+      padding: 3px 8px; 
       border-radius: 999px;
-      font-weight: 500;
+      font-weight: 500; 
       margin-top: 4px;
     }
 
-    .badge-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 999px;
-    }
+    .badge-dot { width: 6px; height: 6px; border-radius: 999px; }
+    .badge.green { background: rgba(22,163,74,0.18); color:#bbf7d0; border:1px solid rgba(34,197,94,0.7); }
+    .badge.green .badge-dot { background:#22c55e; }
+    .badge.yellow { background: rgba(234,179,8,0.18); color:#fef9c3; border:1px solid rgba(234,179,8,0.7); }
+    .badge.yellow .badge-dot { background:#eab308; }
+    .badge.red { background: rgba(239,68,68,0.18); color:#fecaca; border:1px solid rgba(248,113,113,0.7); }
+    .badge.red .badge-dot { background:#ef4444; }
 
-    .badge.green {
-      background: rgba(22, 163, 74, 0.18);
-      color: #bbf7d0;
-      border: 1px solid rgba(34, 197, 94, 0.7);
-    }
-
-    .badge.green .badge-dot {
-      background: #22c55e;
-    }
-
-    .badge.yellow {
-      background: rgba(234, 179, 8, 0.18);
-      color: #fef9c3;
-      border: 1px solid rgba(234, 179, 8, 0.7);
-    }
-
-    .badge.yellow .badge-dot {
-      background: #eab308;
-    }
-
-    .badge.red {
-      background: rgba(239, 68, 68, 0.18);
-      color: #fecaca;
-      border: 1px solid rgba(248, 113, 113, 0.7);
-    }
-
-    .badge.red .badge-dot {
-      background: #ef4444;
-    }
-
-    /* Water Pump Control Styles */
     .control-card {
-      background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(5,150,105,0.3));
+      background: linear-gradient(135deg, rgba(16,185,129,0.18), rgba(5,150,105,0.3));
       border: 1px solid rgba(16,185,129,0.5);
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
     }
 
     .control-label {
-      font-size: 0.85rem;
+      font-size: clamp(0.75rem, 2.5vw, 0.85rem);
       color: #9ca3af;
       font-weight: 500;
+      margin-bottom: 8px;
     }
 
-    .pump-toggle {
-      display: flex;
-      align-items: center;
-      gap: 8px;
+    .pump-toggle { 
+      display: flex; 
+      align-items: center; 
+      gap: 8px; 
+      flex-wrap: wrap;
     }
-
+    
     .toggle-switch {
-      position: relative;
-      width: 50px;
-      height: 28px;
-      background: rgba(75, 85, 99, 0.5);
-      border-radius: 14px;
-      cursor: pointer;
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      transition: background 0.3s ease;
+      position: relative; 
+      width: 45px; 
+      height: 26px;
+      background: rgba(75,85,99,0.5); 
+      border-radius: 13px;
+      cursor: pointer; 
+      border: 1px solid rgba(148,163,184,0.4);
+      transition: 0.3s;
+      flex-shrink: 0;
     }
 
-    .toggle-switch.active {
-      background: rgba(34, 197, 94, 0.6);
-      border-color: #22c55e;
-    }
-
+    .toggle-switch.active { background: rgba(34,197,94,0.6); border-color:#22c55e; }
     .toggle-switch::after {
-      content: '';
-      position: absolute;
-      width: 24px;
-      height: 24px;
-      background: #e5e7eb;
-      border-radius: 12px;
-      top: 2px;
-      left: 2px;
-      transition: left 0.3s ease;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      content: ''; 
+      position:absolute; 
+      width: 22px; 
+      height:22px; 
+      border-radius: 11px;
+      background:#e5e7eb; 
+      top:2px; 
+      left:2px; 
+      transition:0.3s;
     }
+    .toggle-switch.active::after { left:21px; background:#22c55e; }
 
-    .toggle-switch.active::after {
-      left: 24px;
-      background: #22c55e;
+    .pump-status { 
+      display:flex; 
+      align-items: center; 
+      gap: 6px; 
+      font-size: clamp(0.75rem, 2.5vw, 0.85rem);
     }
-
-    .pump-status {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.85rem;
-      color: #e5e7eb;
-    }
-
-    .pump-indicator {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
+    .pump-indicator { 
+      width: 8px; 
+      height: 8px; 
+      border-radius: 50%; 
       background: #6b7280;
-      transition: background 0.3s ease;
+      flex-shrink: 0;
     }
-
-    .pump-indicator.running {
-      background: #22c55e;
-      animation: pumpPulse 1s infinite;
-    }
-
-    @keyframes pumpPulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
+    .pump-indicator.running { 
+      background: #22c55e; 
+      animation: pulse 1s infinite; 
     }
 
     .pump-timer {
-      font-size: 0.75rem;
+      font-size: clamp(0.65rem, 2vw, 0.75rem);
       color: #9ca3af;
-      margin-top: 4px;
+      margin-top: 6px;
     }
 
-    .charts {
-      display: grid;
-      grid-template-columns: minmax(0, 2fr) minmax(0, 2fr);
-      gap: 16px;
+    .charts { 
+      display: grid; 
+      grid-template-columns: 1fr;
+      gap: 16px; 
+      margin-bottom: 16px;
     }
 
     .panel {
-      padding: 14px 16px;
-      border-radius: 16px;
+      padding: 12px 14px; 
+      border-radius: 12px;
       background: radial-gradient(circle at top left, rgba(56,189,248,0.18), rgba(15,23,42,0.9));
       border: 1px solid rgba(148,163,184,0.3);
       box-shadow: 0 18px 40px rgba(15,23,42,0.6);
-      backdrop-filter: blur(12px);
     }
 
-    .panel-title {
-      font-size: 0.9rem;
-      color: #e5e7eb;
-      margin-bottom: 8px;
+    .panel-title { 
       display: flex;
       justify-content: space-between;
       align-items: center;
+      margin-bottom: 8px;
+      gap: 8px;
+      flex-wrap: wrap;
     }
 
     .panel-title span {
-      font-size: 0.75rem;
+      font-size: clamp(0.65rem, 2.5vw, 0.75rem);
       color: #9ca3af;
     }
 
-    .footer {
-      margin-top: 14px;
-      font-size: 0.7rem;
-      color: #6b7280;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
     .refresh-btn {
-      padding: 6px 10px;
+      padding: 5px 8px;
       border-radius: 999px;
       border: 1px solid rgba(148, 163, 184, 0.7);
       background: rgba(15, 23, 42, 0.9);
       color: #e5e7eb;
-      font-size: 0.75rem;
+      font-size: clamp(0.65rem, 2vw, 0.75rem);
       cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      transition: background 0.2s ease;
+      gap: 4px;
+      transition: 0.2s;
+      white-space: nowrap;
     }
 
     .refresh-btn:hover {
       background: rgba(30, 64, 175, 0.8);
     }
 
-    @media (max-width: 768px) {
-      .charts {
-        grid-template-columns: minmax(0, 1fr);
+    .footer { 
+      margin-top: 14px; 
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: clamp(0.65rem, 2vw, 0.75rem); 
+      color: #6b7280;
+    }
+
+    /* TABLET: 640px and up */
+    @media (min-width: 640px) {
+      body {
+        padding: 15px;
       }
+
+      .app-container {
+        padding: 0 15px;
+      }
+
+      .cards {
+        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+        gap: 12px;
+      }
+
+      .card, .control-card {
+        padding: 13px 15px;
+      }
+
+      .footer {
+        flex-direction: row;
+        justify-content: space-between;
+        gap: 0;
+      }
+    }
+
+    /* DESKTOP: 1024px and up */
+    @media (min-width: 1024px) {
+      body {
+        padding: 20px;
+      }
+
+      .app-container {
+        padding: 0 20px;
+      }
+
+      .cards {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+      }
+
+      .card, .control-card {
+        padding: 14px 16px;
+      }
+
+      .charts {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
       header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
+        align-items: center;
+        flex-wrap: nowrap;
+      }
+    }
+
+    /* LARGE DESKTOP: 1440px and up */
+    @media (min-width: 1440px) {
+      .app-container {
+        max-width: 1200px;
+      }
+
+      .cards {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 14px;
       }
     }
   </style>
 </head>
+
 <body>
   <div class="app-container">
+
+    <!-- ALERT BAR -->
     <div id="alertBar" class="alert-bar">
       <span>⚠ Alert:</span>
       <span id="alertMessage">Plant is under stress</span>
     </div>
 
+    <!-- HEADER -->
     <header>
       <div class="title-block">
         <h1>Bio-Bubble AI Dashboard</h1>
@@ -364,7 +364,9 @@
       </div>
     </header>
 
+    <!-- CARDS -->
     <section class="cards">
+
       <div class="card">
         <div class="card-title">Temperature</div>
         <div class="card-value" id="tempValue">-- °C</div>
@@ -395,6 +397,7 @@
         <div id="stressPredBadgeContainer"></div>
       </div>
 
+      <!-- WATER PUMP CONTROL -->
       <div class="control-card">
         <div class="control-label">💧 Water Pump Control</div>
         <div class="pump-toggle">
@@ -406,473 +409,380 @@
         </div>
         <div class="pump-timer" id="pumpTimer"></div>
       </div>
+
+      <!-- PUMP COUNT -->
+      <div class="card">
+        <div class="card-title">Pump Activations</div>
+        <div class="card-value" id="pumpCountValue">0</div>
+        <div class="card-sub">Total times watered</div>
+      </div>
+
+      <!-- AI RECOMMENDATION -->
+      <div class="card">
+        <div class="card-title">AI Recommendation</div>
+        <div class="card-value" id="aiRecTitle">--</div>
+        <div class="card-sub" id="aiRecDetail">Waiting for data...</div>
+      </div>
+
     </section>
 
+    <!-- CHARTS -->
     <section class="charts">
       <div class="panel">
         <div class="panel-title">
           <span>Environment Trends</span>
-          <button class="refresh-btn" id="manualRefresh">
-            ⟳ Refresh
-          </button>
+          <button class="refresh-btn" id="manualRefresh">⟳ Refresh</button>
         </div>
-        <canvas id="envChart" height="140"></canvas>
+        <canvas id="envChart"></canvas>
       </div>
 
       <div class="panel">
         <div class="panel-title">
-          <span>Stress Timeline (Current vs Predicted)</span>
-          <span>0 = Normal, 1 = Warning, 2 = Critical</span>
+          <span>Stress Timeline</span>
+          <span>0=Normal, 1=Warn, 2=Critical</span>
         </div>
-        <canvas id="stressChart" height="140"></canvas>
+        <canvas id="stressChart"></canvas>
+      </div>
+
+      <!-- ENV SUMMARY -->
+      <div class="panel" style="margin-top:12px;">
+        <div class="panel-title"><span>Env Summary (Last 50 pts)</span></div>
+        <div class="card-sub" id="envTrendsText">--</div>
       </div>
     </section>
 
+    <!-- FOOTER -->
     <div class="footer">
-      <span>Data source: ThingSpeak IoT channel (Real-time)</span>
-      <span>Updates every 5 seconds</span>
+      <span>Data: ThingSpeak IoT Channel</span>
+      <span>Updates every 5 sec</span>
+      <span id="currentDateTime">Now: --</span>
     </div>
+
   </div>
 
+  <!-- =======================================
+       JAVASCRIPT SECTION (FULLY FIXED)
+  ======================================== -->
   <script>
-    // ==================== CONFIG ====================
-    const CHANNEL_ID = "3196366";
-    const READ_API_KEY = "7GGMVUP6BVK9UJC2";
-    const WRITE_API_KEY = "BWAP610Y0M33LLFD"; // your write key
-    const RESULTS = 50;
-    const REFRESH_INTERVAL_MS = 5000;
-    const MAX_RETRIES = 3;
-    const RETRY_DELAY_MS = 1000;
-    const PUMP_DEFAULT_DURATION_MS = 5000; // 5 sec
 
-    // ==================== DOM ELEMENTS ====================
-    const alertBar = document.getElementById("alertBar");
-    const alertMessage = document.getElementById("alertMessage");
-    const lastUpdatedEl = document.getElementById("lastUpdated");
-    const statusIndicator = document.getElementById("statusIndicator");
+const CHANNEL_ID = "3196366";
+const READ_API_KEY = "7GGMVUP6BVK9UJC2";
+const WRITE_API_KEY = "BWAP610Y0M33LLFD";
+const RESULTS = 50;
+const REFRESH_INTERVAL_MS = 5000;
 
-    const tempValueEl = document.getElementById("tempValue");
-    const humValueEl = document.getElementById("humValue");
-    const soilValueEl = document.getElementById("soilValue");
-    const stressNowValueEl = document.getElementById("stressNowValue");
-    const stressPredValueEl = document.getElementById("stressPredValue");
+const statusIndicator = document.getElementById("statusIndicator");
+const lastUpdatedEl = document.getElementById("lastUpdated");
 
-    const stressNowBadgeContainer = document.getElementById("stressNowBadgeContainer");
-    const stressPredBadgeContainer = document.getElementById("stressPredBadgeContainer");
+const tempValueEl = document.getElementById("tempValue");
+const humValueEl = document.getElementById("humValue");
+const soilValueEl = document.getElementById("soilValue");
+const stressNowValueEl = document.getElementById("stressNowValue");
+const stressPredValueEl = document.getElementById("stressPredValue");
 
-    const manualRefreshBtn = document.getElementById("manualRefresh");
+// FIXED: Added missing badge containers
+const stressNowBadgeContainer = document.getElementById("stressNowBadgeContainer");
+const stressPredBadgeContainer = document.getElementById("stressPredBadgeContainer");
 
-    // Pump DOM
-    const pumpToggle = document.getElementById("pumpToggle");
-    const pumpIndicator = document.getElementById("pumpIndicator");
-    const pumpStatusText = document.getElementById("pumpStatusText");
-    const pumpTimer = document.getElementById("pumpTimer");
+const pumpCountValueEl = document.getElementById("pumpCountValue");
+const aiRecTitleEl = document.getElementById("aiRecTitle");
+const aiRecDetailEl = document.getElementById("aiRecDetail");
+const envTrendsText = document.getElementById("envTrendsText");
 
-    // Charts
-    let envChart, stressChart;
+// Pump UI elements
+const pumpToggle = document.getElementById("pumpToggle");
+const pumpIndicator = document.getElementById("pumpIndicator");
+const pumpStatusText = document.getElementById("pumpStatusText");
+const pumpTimer = document.getElementById("pumpTimer");
 
-    // Data cache
-    let lastLatestId = null;
-    let chartDataCache = {
-      labels: [],
-      temps: [],
-      soils: [],
-      stressNow: [],
-      stressPred: []
-    };
+let pumpIsActive = false;
+let pumpInterval = null;
 
-    let isRefreshing = false;
-    let connectionStatus = "connected";
+// Timestamp update
+function updateTime() {
+  document.getElementById("currentDateTime").textContent =
+    "Now: " + new Date().toLocaleTimeString();
+}
+setInterval(updateTime, 1000);
+updateTime();
 
-    // Pump state
-    let pumpIsActive = false;
-    let pumpRunTimeRemaining = 0;
-    let pumpTimerInterval = null;
+// FIXED: Safe badge update with null checks
+function updateBadge(el, val) {
+  if (!el) return;
+  let cls = val === 2 ? "red" : val === 1 ? "yellow" : "green";
+  el.innerHTML = `
+    <div class="badge ${cls}">
+      <span class="badge-dot"></span>
+      <span>${val === 0 ? "Normal" : val === 1 ? "Warning" : "Critical"}</span>
+    </div>`;
+}
 
-    // ==================== UTILS ====================
-    function setStatus(status) {
-      connectionStatus = status;
-      statusIndicator.className = `status-indicator ${status}`;
-    }
+// Send pump command to TS
+async function sendPumpCommand(v) {
+  const url = `https://api.thingspeak.com/update?api_key=${WRITE_API_KEY}&field7=${v}`;
+  try {
+    await fetch(url);
+  } catch (e) {
+    console.error("Pump command error:", e);
+  }
+}
 
-    function stressLabel(value) {
-      if (value === 0) return "Normal";
-      if (value === 1) return "Warning";
-      if (value === 2) return "Critical";
-      return "--";
-    }
+pumpToggle.onclick = async () => {
+  if (!pumpIsActive) {
+    pumpIsActive = true;
+    pumpToggle.classList.add("active");
+    pumpIndicator.classList.add("running");
+    pumpStatusText.textContent = "ON";
 
-    function createBadgeHTML(type, label) {
-      return `<div class="badge ${type}"><span class="badge-dot"></span><span>${label}</span></div>`;
-    }
+    // Send pump ON command
+    await sendPumpCommand(1);
+    
+    // Skip next refresh to avoid stale data
+    let skipRefreshCount = 1;
 
-    function updateBadge(container, stress) {
-      let type = "green";
-      if (stress === 1) type = "yellow";
-      if (stress === 2) type = "red";
-      container.innerHTML = createBadgeHTML(type, stressLabel(stress));
-    }
+    let tt = 5;
+    pumpTimer.textContent = "Running: 5s";
 
-    function showAlert(message) {
-      alertMessage.textContent = message;
-      alertBar.style.display = "block";
-
-      if ("Notification" in window && Notification.permission === "granted") {
-        new Notification("Bio-Bubble AI Alert", { body: message });
-      }
-    }
-
-    function hideAlert() {
-      alertBar.style.display = "none";
-    }
-
-    // ==================== PUMP CONTROL ====================
-    function updatePumpUI() {
-      if (pumpIsActive) {
-        pumpToggle.classList.add("active");
-        pumpIndicator.classList.add("running");
-        pumpStatusText.textContent = "ON";
-      } else {
+    pumpInterval = setInterval(() => {
+      tt--;
+      pumpTimer.textContent = `Running: ${tt}s`;
+      if (tt <= 0) {
+        clearInterval(pumpInterval);
+        pumpInterval = null;
+        pumpIsActive = false;
         pumpToggle.classList.remove("active");
         pumpIndicator.classList.remove("running");
         pumpStatusText.textContent = "OFF";
-      }
-    }
-
-    async function sendPumpCommand(action) {
-      // action: "ON" or "OFF"
-      const value = action === "ON" ? 1 : 0;
-      const url = `https://api.thingspeak.com/update?api_key=${WRITE_API_KEY}&field7=${value}`;
-
-      try {
-        await fetch(url);
-        console.log("Pump command sent:", action, "->", value);
-        return true;
-      } catch (err) {
-        console.error("Pump command failed:", err);
-        return false;
-      }
-    }
-
-    function startPumpTimer(durationMs = PUMP_DEFAULT_DURATION_MS) {
-      pumpRunTimeRemaining = Math.ceil(durationMs / 1000);
-
-      pumpTimerInterval = setInterval(() => {
-        pumpRunTimeRemaining--;
-        pumpTimer.textContent = `Running: ${pumpRunTimeRemaining}s`;
-
-        if (pumpRunTimeRemaining <= 0) {
-          clearInterval(pumpTimerInterval);
-          pumpTimerInterval = null;
-          pumpTimer.textContent = "";
-          pumpIsActive = false;
-          updatePumpUI();
-        }
-      }, 1000);
-    }
-
-    async function startPump() {
-      const success = await sendPumpCommand("ON");
-      if (success) {
-        pumpIsActive = true;
-        updatePumpUI();
-        startPumpTimer(PUMP_DEFAULT_DURATION_MS);
-
-        // After timer ends, we also send OFF to be safe
-        setTimeout(() => {
-          sendPumpCommand("OFF");
-        }, PUMP_DEFAULT_DURATION_MS + 1000);
-      }
-    }
-
-    async function stopPump() {
-      const success = await sendPumpCommand("OFF");
-      if (success) {
-        pumpIsActive = false;
-        if (pumpTimerInterval) {
-          clearInterval(pumpTimerInterval);
-          pumpTimerInterval = null;
-        }
         pumpTimer.textContent = "";
-        updatePumpUI();
+        sendPumpCommand(0);
       }
-    }
+    }, 1000);
+  }
+};
 
-    async function togglePump() {
-      if (pumpIsActive) {
-        await stopPump();
-      } else {
-        await startPump();
-      }
-    }
+let chartDataCache = {
+  labels: [],
+  temps: [],
+  soils: [],
+  stressNow: [],
+  stressPred: []
+};
 
-    pumpToggle.addEventListener("click", togglePump);
+let envChart = null;
+let stressChart = null;
 
-    // ==================== DATA FETCHING ====================
-    async function fetchThingSpeakDataWithRetry(retryCount = 0) {
-      try {
-        setStatus("connecting");
-        const url = `https://api.thingspeak.com/channels/${CHANNEL_ID}/feeds.json?api_key=${READ_API_KEY}&results=${RESULTS}`;
+function initCharts() {
+  const ctx1 = document.getElementById("envChart").getContext("2d");
+  const ctx2 = document.getElementById("stressChart").getContext("2d");
 
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-        const res = await fetch(url, { signal: controller.signal });
-        clearTimeout(timeoutId);
-
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-        const data = await res.json();
-        setStatus("connected");
-        return data;
-      } catch (err) {
-        if (retryCount < MAX_RETRIES) {
-          await new Promise(r => setTimeout(r, RETRY_DELAY_MS));
-          return fetchThingSpeakDataWithRetry(retryCount + 1);
-        }
-        setStatus("disconnected");
-        console.error("Fetch failed:", err);
-        throw err;
-      }
-    }
-
-    // ==================== CHART INIT ====================
-    function initCharts() {
-      const ctxEnv = document.getElementById("envChart").getContext("2d");
-      const ctxStress = document.getElementById("stressChart").getContext("2d");
-
-      envChart = new Chart(ctxEnv, {
-        type: "line",
-        data: {
-          labels: [],
-          datasets: [
-            {
-              label: "Temperature (°C)",
-              data: [],
-              borderColor: "#3b82f6",
-              backgroundColor: "rgba(59, 130, 246, 0.1)",
-              borderWidth: 2,
-              tension: 0.3,
-              pointRadius: 3,
-              pointBackgroundColor: "#3b82f6"
-            },
-            {
-              label: "Soil Moisture (%)",
-              data: [],
-              borderColor: "#10b981",
-              backgroundColor: "rgba(16, 185, 129, 0.1)",
-              borderWidth: 2,
-              tension: 0.3,
-              pointRadius: 3,
-              pointBackgroundColor: "#10b981"
-            }
-          ]
+  envChart = new Chart(ctx1, {
+    type: "line",
+    data: {
+      labels: chartDataCache.labels,
+      datasets: [
+        {
+          label: "Temperature (°C)",
+          data: chartDataCache.temps,
+          borderColor: "#3b82f6",
+          tension: 0.3,
+          fill: false
         },
-        options: {
-          responsive: true,
-          animation: { duration: 200 },
-          interaction: { mode: "index", intersect: false },
-          plugins: {
-            legend: { labels: { color: "#e5e7eb" } }
-          },
-          scales: {
-            x: {
-              ticks: { color: "#9ca3af", maxRotation: 0, autoSkip: true },
-              grid: { color: "rgba(55,65,81,0.4)" }
-            },
-            y: {
-              ticks: { color: "#9ca3af" },
-              grid: { color: "rgba(55,65,81,0.4)" }
-            }
-          }
+        {
+          label: "Soil Moisture (%)",
+          data: chartDataCache.soils,
+          borderColor: "#10b981",
+          tension: 0.3,
+          fill: false
         }
-      });
+      ]
+    },
+    options: { animation: false, responsive: true, maintainAspectRatio: true }
+  });
 
-      stressChart = new Chart(ctxStress, {
-        type: "line",
-        data: {
-          labels: [],
-          datasets: [
-            {
-              label: "Current Stress",
-              data: [],
-              borderColor: "#f59e0b",
-              backgroundColor: "rgba(245, 158, 11, 0.1)",
-              borderWidth: 2,
-              stepped: true,
-              pointRadius: 3,
-              pointBackgroundColor: "#f59e0b"
-            },
-            {
-              label: "Predicted Stress",
-              data: [],
-              borderColor: "#ef4444",
-              backgroundColor: "rgba(239, 68, 68, 0.1)",
-              borderWidth: 2,
-              stepped: true,
-              pointRadius: 3,
-              pointBackgroundColor: "#ef4444"
-            }
-          ]
+  stressChart = new Chart(ctx2, {
+    type: "line",
+    data: {
+      labels: chartDataCache.labels,
+      datasets: [
+        { 
+          label: "Current Stress", 
+          data: chartDataCache.stressNow, 
+          borderColor: "#f59e0b", 
+          stepped: true,
+          fill: false
         },
-        options: {
-          responsive: true,
-          animation: { duration: 200 },
-          interaction: { mode: "index", intersect: false },
-          plugins: {
-            legend: { labels: { color: "#e5e7eb" } }
-          },
-          scales: {
-            x: {
-              ticks: { color: "#9ca3af", maxRotation: 0, autoSkip: true },
-              grid: { color: "rgba(55,65,81,0.4)" }
-            },
-            y: {
-              min: 0,
-              max: 2,
-              ticks: {
-                stepSize: 1,
-                color: "#9ca3af"
-              },
-              grid: { color: "rgba(55,65,81,0.4)" }
-            }
-          }
+        { 
+          label: "Predicted Stress", 
+          data: chartDataCache.stressPred, 
+          borderColor: "#ef4444", 
+          stepped: true,
+          fill: false
         }
-      });
+      ]
+    },
+    options: { animation: false, responsive: true, maintainAspectRatio: true }
+  });
+}
+
+function computeEnvTrends() {
+  const avg = arr => {
+    const valid = arr.filter(v => !isNaN(v) && v !== null && v !== undefined);
+    return valid.length ? valid.reduce((a, b) => a + b, 0) / valid.length : 0;
+  };
+  return {
+    avgTemp: avg(chartDataCache.temps),
+    avgSoil: avg(chartDataCache.soils),
+    avgStress: avg(chartDataCache.stressNow)
+  };
+}
+
+function buildAIRecommendation(stressNow, stressPred, soil, temp, hum) {
+  const level = stressPred ?? stressNow;
+  if (level === undefined || isNaN(level)) {
+    return { title: "--", detail: "Not enough data" };
+  }
+
+  if (level === 0)
+    return { title: "All Good", detail: "Conditions stable. No action needed." };
+
+  if (level === 1)
+    return { title: "Warning", detail: "Keep an eye on watering and light." };
+
+  let tips = [];
+  if (!isNaN(soil) && soil < 35) tips.push("Water the plant.");
+  if (!isNaN(temp) && temp > 32) tips.push("Move to cooler shade.");
+  if (!isNaN(hum) && hum < 40) tips.push("Increase humidity (mist).");
+  if (!tips.length) tips.push("Check soil/temperature manually.");
+
+  return { title: "Critical", detail: "Act now: " + tips.join(" ") };
+}
+
+// FIXED: Safe value parsing with fallback
+function safeParseFloat(val, defaultVal = null) {
+  if (val === null || val === undefined || val === "") return defaultVal;
+  const num = parseFloat(val);
+  return isNaN(num) ? defaultVal : num;
+}
+
+function safeParseInt(val, defaultVal = 0) {
+  const num = parseInt(val);
+  return isNaN(num) ? defaultVal : num;
+}
+
+async function refreshDashboard() {
+  try {
+    const url = `https://api.thingspeak.com/channels/${CHANNEL_ID}/feeds.json?api_key=${READ_API_KEY}&results=${RESULTS}`;
+    const res = await fetch(url);
+    const json = await res.json();
+    const feeds = json.feeds;
+
+    if (!feeds || feeds.length === 0) return;
+
+    // FIXED: Safe parsing for all values
+    chartDataCache.labels = feeds.map(f => new Date(f.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
+    chartDataCache.temps = feeds.map(f => safeParseFloat(f.field1));
+    chartDataCache.soils = feeds.map(f => safeParseFloat(f.field3));
+    chartDataCache.stressNow = feeds.map(f => safeParseInt(f.field4));
+    chartDataCache.stressPred = feeds.map(f => safeParseInt(f.field5));
+
+    if (!envChart) initCharts();
+    
+    // FIXED: Guard chart updates
+    if (envChart) envChart.update();
+    if (stressChart) stressChart.update();
+
+    const latest = feeds[feeds.length - 1];
+
+    // Validate latest entry has required fields before parsing
+    if (!latest.field1 || !latest.field2 || !latest.field3) {
+      console.warn("Latest entry missing sensor data, using previous values");
+      // Don't update - keep showing previous values
+      statusIndicator.className = "status-indicator connected";
+      return;
     }
 
-    // ==================== DELTA UPDATE ====================
-    function appendDataPoint(feed) {
-      const timeStr = new Date(feed.created_at).toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit"
-      });
+    const temp = safeParseFloat(latest.field1);
+    const hum = safeParseFloat(latest.field2);
+    const soil = safeParseFloat(latest.field3);
+    const stressNow = safeParseInt(latest.field4);
+    const stressPred = safeParseInt(latest.field5);
+    const pumpCount = safeParseInt(latest.field6);
 
-      if (lastLatestId === feed.id) return false;
+    // FIXED: Display values safely
+    tempValueEl.textContent = temp === null ? "-- °C" : `${temp.toFixed(1)} °C`;
+    humValueEl.textContent = hum === null ? "-- %" : `${hum.toFixed(1)} %`;
+    soilValueEl.textContent = soil === null ? "-- %" : `${soil.toFixed(0)} %`;
 
-      chartDataCache.labels.push(timeStr);
-      chartDataCache.temps.push(parseFloat(feed.field1));
-      chartDataCache.soils.push(parseFloat(feed.field3));
-      chartDataCache.stressNow.push(feed.field4 !== null ? parseInt(feed.field4) : null);
-      chartDataCache.stressPred.push(feed.field5 !== null ? parseInt(feed.field5) : null);
+    stressNowValueEl.textContent = stressNow;
+    updateBadge(stressNowBadgeContainer, stressNow);
 
-      if (chartDataCache.labels.length > RESULTS) {
-        chartDataCache.labels.shift();
-        chartDataCache.temps.shift();
-        chartDataCache.soils.shift();
-        chartDataCache.stressNow.shift();
-        chartDataCache.stressPred.shift();
-      }
+    stressPredValueEl.textContent = stressPred;
+    updateBadge(stressPredBadgeContainer, stressPred);
 
-      lastLatestId = feed.id;
-      return true;
+    pumpCountValueEl.textContent = pumpCount;
+
+    const rec = buildAIRecommendation(stressNow, stressPred, soil, temp, hum);
+    aiRecTitleEl.textContent = rec.title;
+    aiRecDetailEl.textContent = rec.detail;
+
+    const trends = computeEnvTrends();
+    envTrendsText.textContent =
+      `Avg Temp: ${trends.avgTemp.toFixed(1)} °C | Avg Soil: ${trends.avgSoil.toFixed(0)}% | Avg Stress: ${trends.avgStress.toFixed(1)}`;
+
+    lastUpdatedEl.textContent = "Last updated: " + new Date(latest.created_at).toLocaleTimeString();
+
+    // Update status indicator
+    statusIndicator.className = "status-indicator connected";
+
+    // Alert notification logic
+    if (stressNow === 2) {
+      showAlert("🚨 CRITICAL: Your plant is under CRITICAL stress. Please act now!");
+    } else if (stressPred === 2 || (stressPred !== null && stressPred > 1)) {
+      showAlert("⚠️ WARNING: Your plant is predicted to be stressed soon. Adjust watering or light.");
+    } else {
+      hideAlert();
     }
 
-    function updateChartsIncremental() {
-      if (envChart && stressChart) {
-        envChart.data.labels = chartDataCache.labels;
-        envChart.data.datasets[0].data = chartDataCache.temps;
-        envChart.data.datasets[1].data = chartDataCache.soils;
-        envChart.update("none");
+  } catch (e) {
+    console.error("Dashboard error:", e);
+    statusIndicator.className = "status-indicator disconnected";
+  }
+}
 
-        stressChart.data.labels = chartDataCache.labels;
-        stressChart.data.datasets[0].data = chartDataCache.stressNow;
-        stressChart.data.datasets[1].data = chartDataCache.stressPred;
-        stressChart.update("none");
-      }
-    }
+// Alert notification system
+function showAlert(message) {
+  const alertBar = document.getElementById("alertBar");
+  const alertMessage = document.getElementById("alertMessage");
+  
+  if (alertBar && alertMessage) {
+    alertMessage.textContent = message;
+    alertBar.style.display = "block";
+  }
 
-    // ==================== MAIN DASHBOARD REFRESH ====================
-    async function refreshDashboard() {
-      if (isRefreshing) return;
-      isRefreshing = true;
+  // Browser notification
+  if ("Notification" in window && Notification.permission === "granted") {
+    new Notification("Bio-Bubble AI Alert", { body: message });
+  }
+}
 
-      try {
-        const data = await fetchThingSpeakDataWithRetry();
-        const feeds = data.feeds || [];
+function hideAlert() {
+  const alertBar = document.getElementById("alertBar");
+  if (alertBar) {
+    alertBar.style.display = "none";
+  }
+}
 
-        if (feeds.length === 0) {
-          isRefreshing = false;
-          return;
-        }
+// Request notification permission on load
+if ("Notification" in window && Notification.permission === "default") {
+  Notification.requestPermission();
+}
 
-        if (!envChart) {
-          initCharts();
-          chartDataCache.labels = feeds.map(f =>
-            new Date(f.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-          );
-          chartDataCache.temps = feeds.map(f => parseFloat(f.field1));
-          chartDataCache.soils = feeds.map(f => parseFloat(f.field3));
-          chartDataCache.stressNow = feeds.map(f => f.field4 !== null ? parseInt(f.field4) : null);
-          chartDataCache.stressPred = feeds.map(f => f.field5 !== null ? parseInt(f.field5) : null);
-          lastLatestId = feeds[feeds.length - 1].id;
-          updateChartsIncremental();
-        } else {
-          for (let i = 0; i < feeds.length; i++) {
-            appendDataPoint(feeds[i]);
-          }
-          updateChartsIncremental();
-        }
+// Initial load
+refreshDashboard();
 
-        const latest = feeds[feeds.length - 1];
-        const temp = parseFloat(latest.field1);
-        const hum = parseFloat(latest.field2);
-        const soil = parseFloat(latest.field3);
-        const stressNow = parseInt(latest.field4);
-        const stressPred = latest.field5 !== null ? parseInt(latest.field5) : null;
-        const pumpStatus = latest.field6 !== null ? parseInt(latest.field6) : 0;
+// Auto refresh every 5 seconds
+setInterval(refreshDashboard, REFRESH_INTERVAL_MS);
 
-        requestAnimationFrame(() => {
-          if (!isNaN(temp)) tempValueEl.textContent = `${temp.toFixed(1)} °C`;
-          if (!isNaN(hum)) humValueEl.textContent = `${hum.toFixed(1)} %`;
-          if (!isNaN(soil)) soilValueEl.textContent = `${soil.toFixed(0)} %`;
-
-          if (!isNaN(stressNow)) {
-            stressNowValueEl.textContent = stressNow;
-            updateBadge(stressNowBadgeContainer, stressNow);
-          }
-
-          if (stressPred !== null && !isNaN(stressPred)) {
-            stressPredValueEl.textContent = stressPred;
-            updateBadge(stressPredBadgeContainer, stressPred);
-          }
-
-          // Sync pump UI lightly from Field6 (0/1)
-          pumpIsActive = pumpStatus === 1;
-          updatePumpUI();
-
-          lastUpdatedEl.textContent = `Last updated: ${new Date(latest.created_at).toLocaleTimeString()}`;
-        });
-
-        if ((!isNaN(stressNow) && stressNow === 2) || (stressPred !== null && stressPred >= 1)) {
-          const msg = stressNow === 2
-            ? "Your plant is currently under CRITICAL stress. Please act now!"
-            : "Your plant is likely to be stressed soon. Adjust light or watering.";
-          showAlert(msg);
-        } else {
-          hideAlert();
-        }
-
-      } catch (err) {
-        console.error("Dashboard refresh error:", err);
-      } finally {
-        isRefreshing = false;
-      }
-    }
-
-    // ==================== EVENTS ====================
-    manualRefreshBtn.addEventListener("click", refreshDashboard);
-
-    // Initial load
-    refreshDashboard();
-
-    // Auto refresh
-    setInterval(refreshDashboard, REFRESH_INTERVAL_MS);
-
-    // Ask for notification permission
-    if ("Notification" in window && Notification.permission === "default") {
-      Notification.requestPermission();
-    }
   </script>
 </body>
 </html>
