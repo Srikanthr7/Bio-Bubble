@@ -1,0 +1,176 @@
+#include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h>
+#include "DHT.h"
+
+// -------- PIN CONFIG --------
+#define DHTPIN   D4
+#define DHTTYPE  DHT11
+#define SOIL_PIN A0
+#define LED_PIN  D5          // stress LED
+#define PUMP_PIN D6          // relay IN pin
+
+// -------- WIFI & THINGSPEAK --------
+const char* ssid     = "iQOO Z9x 5G";
+const char* password = "Abinav@0410";
+
+String writeApiKey = "BWAP610Y0M33LLFD";    // Write key
+unsigned long channelID =  3196366;                       // <-- REPLACE with your channel ID (number only, no quotes)
+String readApiKey  = "7GGMVUP6BVK9UJC2";     // Read key for Field7
+
+// ---- Relay Logic ----
+const int RELAY_ON  = LOW;   // Most ESP8266 relay modules are active-LOW
+const int RELAY_OFF = HIGH;
+
+DHT dht(DHTPIN, DHTTYPE);
+
+void setup() {
+  Serial.begin(115200);
+  delay(2000);  // small delay so Serial is ready
+  Serial.println("Booting Bio-Bubble AI...");
+
+  dht.begin();
+
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, LOW);
+
+  pinMode(PUMP_PIN, OUTPUT);
+  digitalWrite(PUMP_PIN, RELAY_OFF);
+
+  // WiFi connect
+  WiFi.begin(ssid, password);
+  Serial.print("Connecting to WiFi");
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.print(".");
+    delay(500);
+  }
+  Serial.println("\nWiFi connected!");
+}
+
+void loop() {
+  Serial.println("---- LOOP START ----");
+
+  // ---- SENSOR READINGS ----
+  float temp = dht.readTemperature();
+  float hum  = dht.readHumidity();
+  int soilRaw = analogRead(SOIL_PIN); // 0–1023
+
+  if (isnan(temp) || isnan(hum)) {
+    Serial.println("DHT read failed (NaN values)");
+    delay(3000);
+    return;
+  }
+
+  int soilPercent = map(soilRaw, 1023, 0, 0, 100);
+
+  // ---- STRESS LEVEL CALCULATIONS ----
+  int stress = 0; // 0 = normal, 1 = warning, 2 = critical
+
+  if (temp > 32 || temp < 18 || hum < 35 || hum > 80 || soilPercent < 25)
+    stress = 2;
+  else if (temp > 30 || temp < 20 || hum < 40 || soilPercent < 35)
+    stress = 1;
+  else
+    stress = 0;
+
+  digitalWrite(LED_PIN, (stress == 2) ? HIGH : LOW);
+
+  // ---- DEBUG SENSOR VALUES ----
+  Serial.println("Temp: " + String(temp) + "°C");
+  Serial.println("Hum : " + String(hum) + "%");
+  Serial.println("Soil: " + String(soilPercent) + "%");
+  Serial.println("Stress: " + String(stress));
+
+  // ---- READ MANUAL PUMP COMMAND FROM THINGSPEAK (Field7) ----
+  int manualCmd = 0;
+
+  if (WiFi.status() == WL_CONNECTED) {
+    HTTPClient http;
+    WiFiClient client;
+
+    String cmdUrl = "http://api.thingspeak.com/channels/";
+    cmdUrl += String(channelID);
+    cmdUrl += "/fields/7/last.txt?api_key=" + readApiKey;
+
+    Serial.println("Requesting manualCmd from: " + cmdUrl);
+
+    http.begin(client, cmdUrl);
+    int httpCode = http.GET();
+    Serial.println("HTTP code (Field7 read): " + String(httpCode));
+
+    if (httpCode == 200) {
+      String payload = http.getString();
+      payload.trim();
+      Serial.println("Field7 raw payload: [" + payload + "]");
+      manualCmd = payload.toInt();  // expects 0 or 1
+    } else {
+      Serial.println("Failed to read manual command, HTTP: " + String(httpCode));
+    }
+
+    http.end();
+  } else {
+    Serial.println("WiFi lost while reading manualCmd");
+  }
+
+  int pumpState = 0;
+
+  // ---- PRIORITY 1: MANUAL CONTROL (Field7 = 1) ----
+  if (manualCmd == 1) {
+    Serial.println("Manual command -> Pump ON (web app)");
+    digitalWrite(PUMP_PIN, RELAY_ON);
+    pumpState = 1;
+    delay(5000); // run for 5 seconds
+    digitalWrite(PUMP_PIN, RELAY_OFF);
+    pumpState = 0;
+    Serial.println("Manual pump cycle finished");
+
+    // Reset Field7 back to 0
+    if (WiFi.status() == WL_CONNECTED) {
+      HTTPClient http2;
+      WiFiClient client2;
+      String resetUrl = "http://api.thingspeak.com/update?api_key=" + writeApiKey + "&field7=0";
+      Serial.println("Resetting Field7 with: " + resetUrl);
+      http2.begin(client2, resetUrl);
+      int resetCode = http2.GET();
+      Serial.println("Reset Field7 HTTP: " + String(resetCode));
+      http2.end();
+    }
+  }
+  // ---- PRIORITY 2: AUTO-WATERING (if no manual command) ----
+  else if (manualCmd == 0 && soilPercent < 30) {
+    Serial.println("Auto: Soil dry -> Pump ON");
+    digitalWrite(PUMP_PIN, RELAY_ON);
+    pumpState = 1;
+    delay(5000);
+    digitalWrite(PUMP_PIN, RELAY_OFF);
+    pumpState = 0;
+    Serial.println("Auto: Pump OFF");
+  } else {
+    Serial.println("No pump action this cycle.");
+  }
+
+  // ---- SEND DATA TO THINGSPEAK (Fields 1–6) ----
+  if (WiFi.status() == WL_CONNECTED) {
+    HTTPClient http;
+    WiFiClient client;
+
+    String url = "http://api.thingspeak.com/update?api_key=" + writeApiKey;
+    url += "&field1=" + String(temp, 1);      // Temperature
+    url += "&field2=" + String(hum, 1);       // Humidity
+    url += "&field3=" + String(soilPercent);  // Soil moisture %
+    url += "&field4=" + String(stress);       // Current Stress
+    url += "&field5=" + String(0);            // Future Stress (AI later)
+    url += "&field6=" + String(pumpState);    // Pump Status
+
+    Serial.println("ThingSpeak write URL: " + url);
+
+    http.begin(client, url);
+    int httpCode = http.GET();
+    Serial.println("ThingSpeak write HTTP: " + String(httpCode));
+    http.end();
+  } else {
+    Serial.println("WiFi lost while writing to ThingSpeak");
+  }
+
+  Serial.println("---- LOOP END ----\n");
+  delay(5000); // 5s between cycles
+}
